@@ -1,54 +1,88 @@
-from rest_framework import viewsets, status
+from rest_framework import status
+from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from quickstart.models import Person, PersonalInfo
+from quickstart.models import Person
 from quickstart.serializers import PersonSerializer
 
 
 # Create your views here.
-class PersonViewSet(viewsets.ModelViewSet):
-    queryset = Person.objects.all()
-    serializer_class = PersonSerializer
+class PersonPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
 
-    def create(self, request, *args, **kwargs):
-        first_name = request.data.get("first_name")
-        last_name = request.data.get("last_name")
 
-        # Extract nested personal_info data
-        personal_info_data = request.data.get("personal_info", {})
-        age = personal_info_data.get("age")
-        job = personal_info_data.get("job")
+# Create your views here.
+# This class is responsible for handling the GET request for the Person model
+class PersonAPIView(APIView):
+    pagination_class = PersonPagination
 
-        # Create the Person instance
-        person = Person.objects.create(first_name=first_name, last_name=last_name)
+    def get(self, request, *args, **kwargs):
 
-        # Create the associated PersonalInfo instance
-        PersonalInfo.objects.create(person=person, age=age, job=job)
+        # get person by id
+        id = kwargs.get('id', None)
+        if id is not None:
+            person = get_object_or_404(Person, id=id)
+            serializer = PersonSerializer(person)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-        return Response(PersonSerializer(person).data, status=status.HTTP_201_CREATED)
+        else:
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
+            # get all the data from the Person model
+            persons = Person.objects.all()
+            if not persons.exists():
+                return Response({"message": "No Person found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Extract nested data
-        personal_info_data = request.data.get('personal_info')
+        # Check for 'Ordering' query parameter
+        ordering = request.query_params.get('ordering', None)
+        if ordering is not None:
+            persons = persons.order_by(ordering)
 
-        # Update Person fields
-        instance.first_name = request.data.get('first_name', instance.first_name)
-        instance.last_name = request.data.get('last_name', instance.last_name)
-        instance.save()
+        # Filtering the data based on the query parameters
+        first_name = request.query_params.get('first_name', None)
+        last_name = request.query_params.get('last_name', None)
+        # If the query parameters are present, filter the data
+        if first_name is not None:
+            persons = persons.filter(first_name__contains=first_name)
+        if last_name is not None:
+            persons = persons.filter(last_name__contains=last_name)
 
-        # Update or create PersonalInfo
-        if personal_info_data:
-            personal_info_instance = instance.personal_info
-            personal_info_instance.age = personal_info_data.get('age', personal_info_instance.age)
-            personal_info_instance.job = personal_info_data.get('job', personal_info_instance.job)
-            personal_info_instance.save()
+        # Pagination of the data
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(persons, request)
+        if page is not None:
+            if len(page) == 0:
+                return Response({"message": "No data found"}, status=status.HTTP_404_NOT_FOUND)
+            serializer = PersonSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        """
+        Further improvements Task for future:
+        1.	Advanced Filtering: Implement more complex filtering options, such as filtering by a combination of fields (e.g., by both first_name and last_name).
+	    2.	Default Ordering: Consider setting a default ordering if none is specified. This can help ensure consistent results.
+	    3.	Error Handling for Invalid Query Parameters: Extend your error handling to check for invalid ordering values or invalid query parameter formats.
+	    4.	Rate Limiting: Implement rate limiting to prevent abuse of the API by limiting the number of requests a client can make in a given time period.
+	    5.	Caching: Consider implementing caching for frequently accessed data to improve performance.
+        """
 
-    def partial_update(self, request, *args, **kwargs):
-        kwargs['partial'] = True
-        return self.update(request, *args, **kwargs)
+        # Serialize the data and return it
+        serializer = PersonSerializer(persons, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        # Create a serializer instance with the data from the request
+        serializer = PersonSerializer(data=request.data)
+
+        # Check if the serializer has valid data
+        if serializer.is_valid():
+            # Save the new Person from the validated data
+            person = serializer.save()
+
+            # Return the serialized Person data and a 201 Created status
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            # If data is invalid, return the errors and a 400 Bad Request status
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
