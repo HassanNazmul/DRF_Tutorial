@@ -1,10 +1,11 @@
 # URL Configuration for the new app
-from django.urls import path, include
-from rest_framework import routers
+from django.urls import path
 
 from . import views
 
-route = routers.DefaultRouter()
-route.register(r"person", views.PersonViewSet, basename="PersonViewSet")
-
-urlpatterns = [path("", include(route.urls))]
+urlpatterns = [
+    # GET all the data from the Person model
+    path('person/', views.PersonAPIView.as_view(), name="person-list"),
+    # GET Person by ID
+    path('person/<int:id>/', views.PersonAPIView.as_view(), name="person"),
+]

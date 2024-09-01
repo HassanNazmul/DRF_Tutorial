@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from .models import Person, PersonalInfo
+from .models import Person
 
 
-class PersonalInfoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PersonalInfo
-        fields = "__all__"
+# class PersonalInfoSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = PersonalInfo
+#         fields = "__all__"
 
 
 class PersonSerializer(serializers.ModelSerializer):
