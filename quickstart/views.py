@@ -108,3 +108,35 @@ class PersonAPIView(APIView):
         else:
             # If data is invalid, return the errors and a 400 Bad Request status
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, *args, **kwargs):
+        # # Retrieve the Person object by id
+        # id = kwargs.get('id', None)
+        # # Check if the id is present in the URL
+        # if id is not None:
+        #     person = get_object_or_404(Person, id=id)
+        #     serializer = PersonSerializer(person, data=request.data, partial=True)
+        #     # Check if the serializer has valid data
+        #     if serializer.is_valid():
+        #         serializer.save()
+        #         return Response(serializer.data, status=status.HTTP_200_OK)
+        #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # # If the id is not present in the URL, return a 400 Bad Request status
+        # return Response({"message": "Please Enter the ID in the URL Followed by Slash"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve the Person object by id
+        person_id = kwargs.get('id', None)
+        if person_id is None:
+            return Response({"message": "ID is required in the URL"}, status=status.HTTP_400_BAD_REQUEST)
+
+        person = get_object_or_404(Person, id=person_id)
+
+        try:
+            serializer = PersonSerializer(person, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "Person Updated Successfully", "data": serializer.data},
+                                status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except error:
+            return Response({"message": "Error while updating the Person"}, status=status.HTTP_400_BAD_REQUEST)
