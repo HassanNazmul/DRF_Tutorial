@@ -12,7 +12,7 @@ POST http://127.0.0.1:8000/api/person/
 Content-Type: application/json
 
 {
-  "first_name": "As",
+  "first_name": "Abdullah",
   "last_name": "Muhammad"
 }
 
