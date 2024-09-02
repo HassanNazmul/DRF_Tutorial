@@ -1,0 +1,18 @@
+### GET All Persons
+GET http://127.0.0.1:8000/api/person
+
+### GET Person by ID
+GET http://127.0.0.1:8000/api/person/6
+
+### GET Person by Name
+GET http://127.0.0.1:8000/api/person?first_name=Yusha
+
+### POST Create New Person
+POST http://127.0.0.1:8000/api/person/
+Content-Type: application/json
+
+{
+  "first_name": "Abdullah",
+  "last_name": "Muhammad"
+}
+
