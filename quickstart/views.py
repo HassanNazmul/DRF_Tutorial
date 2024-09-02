@@ -1,3 +1,5 @@
+from audioop import error
+
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
@@ -73,6 +75,26 @@ class PersonAPIView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
+        data = request.data
+        # Validate the data from the request
+        errors = {}
+
+        # # Validate the first and last name fields
+        for field in ['first_name', 'last_name']:
+            # Check if the field is present in the data and is not empty
+            if field not in data or not data[field]:
+                errors[field] = [f'{field.capitalize()} is required']
+            # Check if the field contains only alphabets
+            elif not data[field].isalpha():
+                errors[field] = [f'{field.capitalize()} should contain only alphabets']
+            # Check First Letter is Capital
+            elif not data[field][0].isupper():
+                errors[field] = [f'{field.capitalize()} should start with a capital letter']
+
+        # If there are any errors, return the errors and a 400 Bad Request status
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
         # Create a serializer instance with the data from the request
         serializer = PersonSerializer(data=request.data)
 
