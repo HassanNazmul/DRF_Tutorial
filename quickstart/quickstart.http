@@ -24,3 +24,14 @@ Content-Type: application/json
   "first_name": "NAHID X",
   "last_name": "Hassan"
 }
+
+### PUT Update Person by ID
+PATCH http://127.0.0.1:8000/api/person/7/
+Content-Type: application/json
+
+{
+  "first_name": "NAHID"
+}
+
+### DELETE Person by ID
+DELETE http://127.0.0.1:8000/api/person/18

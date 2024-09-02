@@ -140,3 +140,39 @@ class PersonAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except error:
             return Response({"message": "Error while updating the Person"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, *args, **kwargs):
+        # Retrieve the Person object by id
+        person_id = kwargs.get('id', None)
+        if person_id is None:
+            return Response({"message": "ID is required in the URL"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve the Person object by id
+        person = get_object_or_404(Person, id=person_id)
+
+        # Update the Person object with the data from the request
+        try:
+            serializer = PersonSerializer(person, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message": "Person Updated Successfully", "data": serializer.data},
+                                status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except error:
+            return Response({"message": "Error while updating the Person"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, *args, **kwargs):
+        # Retrieve the Person object by id
+        person_id = kwargs.get('id', None)
+        if person_id is None:
+            return Response({"message": "ID is required in the URL"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve the Person object by id
+        person = get_object_or_404(Person, id=person_id)
+
+        # Delete the Person object
+        try:
+            person.delete()
+            return Response({"message": "Person Deleted Successfully"}, status=status.HTTP_200_OK)
+        except error:
+            return Response({"message": "Error while deleting the Person"}, status=status.HTTP_400_BAD_REQUEST)
