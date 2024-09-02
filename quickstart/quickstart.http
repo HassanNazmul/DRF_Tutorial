@@ -2,7 +2,7 @@
 GET http://127.0.0.1:8000/api/person
 
 ### GET Person by ID
-GET http://127.0.0.1:8000/api/person/6
+GET http://127.0.0.1:8000/api/person/7
 
 ### GET Person by Name
 GET http://127.0.0.1:8000/api/person?first_name=Yusha
@@ -16,3 +16,11 @@ Content-Type: application/json
   "last_name": "Muhammad"
 }
 
+### PUT Update Person by ID
+PUT http://127.0.0.1:8000/api/person/7/
+Content-Type: application/json
+
+{
+  "first_name": "NAHID X",
+  "last_name": "Hassan"
+}
